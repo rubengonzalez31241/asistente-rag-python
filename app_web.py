@@ -7,8 +7,8 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
-from langchain.chains import create_retrieval_chain
-from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain_core.runnables import RunnablePassthrough
+from langchain_core.output_parsers import StrOutputParser
 
 st.set_page_config(page_title="Asistente RAG Comercial", layout="wide")
 st.title("🤖 Asistente Virtual Inteligente")
@@ -62,6 +62,9 @@ if documents:
 
     llm = ChatGroq(api_key=GROQ_API_KEY, model_name="llama-3.1-8b-instant")
 
+    def format_docs(docs):
+        return "\n\n".join(doc.page_content for doc in docs)
+
     system_prompt = (
         "Sos un asistente virtual comercial profesional y educado.\n"
         "Instrucciones de respuesta:\n"
@@ -73,11 +76,15 @@ if documents:
 
     prompt = ChatPromptTemplate.from_messages([
         ("system", system_prompt),
-        ("human", "{input}"),
+        ("human", "{question}"),
     ])
 
-    question_answer_chain = create_stuff_documents_chain(llm, prompt)
-    rag_chain = create_retrieval_chain(retriever, question_answer_chain)
+    rag_chain = (
+        {"context": retriever | format_docs, "question": RunnablePassthrough()}
+        | prompt
+        | llm
+        | StrOutputParser()
+    )
 
     if "messages" not in st.session_state:
         st.session_state.messages = []
@@ -92,11 +99,12 @@ if documents:
             st.markdown(user_input)
 
         with st.chat_message("assistant"):
-            response = rag_chain.invoke({"input": user_input})
-            answer = response["answer"]
+            answer = rag_chain.invoke(user_input)
             
-            # Cita de fuentes
-            sources = set([doc.metadata.get("source", "Documento") for doc in response.get("context", [])])
+            # Recuperar documentos para la fuente
+            retrieved_docs = retriever.invoke(user_input)
+            sources = set([doc.metadata.get("source", "Documento") for doc in retrieved_docs])
+            
             if sources and "no dispongo" not in answer.lower():
                 answer += f"\n\n---\n**Fuente consultada:** {', '.join(sources)}"
 
