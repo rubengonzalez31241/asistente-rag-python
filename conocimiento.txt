@@ -1,0 +1,39 @@
+=====================================================
+    INFORMACIÓN DE SERVICIOS Y PREGUNTAS FRECUENTES
+=====================================================
+
+--- SOBRE EL PROFESIONAL ---
+Nombre: Ruben Gonzalez
+Rol: Desarrollador de Software & Especialista en Automatización con IA
+Especialidad: Desarrollo de soluciones a medida con Python, SQL e Integraciones de Inteligencia Artificial (RAG, Bots, Scripts de Automatización).
+
+--- SERVICIOS OFRECIDOS ---
+1. Desarrollo de Bases de Datos y Sistemas CRUD:
+   - Diseño de diagramas de entidad-relación (DER).
+   - Creación y administración de bases de datos relacionales en SQL (SQLite, SQL Server, PostgreSQL).
+   - Integración con interfaces de control en Python.
+
+2. Automatización de Procesos y Scripts en Python:
+   - Creación de programas para procesamiento de datos, lectura de archivos (Excel, CSV, TXT) y organización automática.
+   - Eliminación de tareas repetitivas mediante código eficiente.
+
+3. Asistentes Virtuales y Bots de IA (RAG):
+   - Creación de bots de consulta entrenados con datos específicos de la empresa o freelancer.
+   - Respuestas automáticas 24/7 basadas estrictamente en la información provista, evitando alucinaciones.
+
+--- TARIFAS Y PRESUPUESTOS ---
+- Consultoría inicial: Sin costo (reunión de 20 minutos para evaluar el proyecto).
+- Proyectos pequeños (Scripts o CRUDs simples): A partir de 150 USD / equivalente en moneda local.
+- Proyectos medianos/avanzados (Sistemas completos o Asistentes RAG): A partir de 350 USD segun requerimientos.
+- Formas de pago: Transferencia bancaria, MP o pagos internacionales (cripto/PayPal).
+
+--- PROCESO DE TRABAJO ---
+1. Requerimientos: El cliente explica la necesidad o problema a resolver.
+2. Propuesta: Se entrega un plan de trabajo detallado con alcance, plazos y presupuesto exacto.
+3. Desarrollo: Avances periódicos en Git/GitHub para seguimiento en tiempo real.
+4. Entrega y Capacitación: Se entrega el código funcional, la documentación completa (README) y una sesión de explicación.
+
+--- CONTACTO Y HORARIOS ---
+- Horario de atención: Lunes a Viernes de 09:00 a 18:00 hs.
+- Tiempo estimado de respuesta: Menos de 24 horas hábiles.
+- Modalidad de trabajo: 100% Remoto.
