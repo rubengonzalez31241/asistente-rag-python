@@ -112,7 +112,7 @@ if documents:
 
         # Generar respuesta del asistente
         with st.chat_message("assistant"):
-            with st.spinner("Procesando consulta...")
+            with st.spinner("Procesando consulta..."):
                 response = rag_chain.invoke(user_input)
                 st.write(response)
         
