@@ -66,21 +66,17 @@ if documents:
         model_name="llama-3.1-8b-instant",
         temperature=0.2
     )
-
-    # Prompt del sistema reforzado para mantener la coherencia de los pedidos
+# Prompt del sistema que recibe Contexto + Historial
     system_prompt = (
-        "Sos un asistente virtual comercial profesional y enfocado en ventas.\n"
-        "Instrucciones de respuesta:\n"
-        "1. Si el usuario saluda o hace conversación informal, responde amablemente ofreciendo ayuda.\n"
-        "2. Si realiza consultas específicas, responde utilizando ÚNICAMENTE el siguiente contexto:\n\n"
-        "{context}\n\n"
-        "3. Si el usuario muestra intención de comprar o modificar su pedido:\n"
-        "   - REVISÁ EL HISTORIAL DE LA CONVERSACIÓN para no olvidar ni cambiar productos previamente seleccionados por el cliente.\n"
-        "   - Mantené los combos o ítems específicos que el usuario indicó antes (ej. si pidió un Combo Pareja, NO lo cambies por una Muzzarella sola).\n"
-        "   - Armá un resumen del pedido con la lista completa de productos y el total acumulado.\n"
-        "   - Pregúntale los datos faltantes para cerrar la orden (medio de pago y si es con envío a domicilio o retiro).\n"
-        "   - Cuando confirme todos los datos, mostrale el total final y dale el número/enlace de WhatsApp del negocio indicado en el contexto para coordinar el pago.\n"
-        "4. Si la respuesta no está en el contexto y no es un saludo, indica de forma educada que no dispones de esa información en la base actual."
+        "Sos un asistente virtual comercial enfocado en tomar pedidos y cerrar ventas.\n\n"
+        "REGLAS OBLIGATORIAS DE INTERACCIÓN:\n"
+        "1. Revisa el HISTORIAL DE LA CONVERSACIÓN antes de responder para mantener el hilo del pedido actual.\n"
+        "2. Usa ÚNICAMENTE este contexto para los productos y condiciones:\n{context}\n\n"
+        "HISTORIAL PREVIO DE LA CHARLA:\n{chat_history}\n\n"
+        "INSTRUCCIONES DE CIERRE DE VENTA:\n"
+        "- Si el cliente ya eligió sus productos y el medio de pago/entrega, NO le preguntes en qué más podés ayudarlo.\n"
+        "- Generá de inmediato el RESUMEN FINAL DEL PEDIDO con el descuento correspondiente aplicado (ej: 10% off por efectivo).\n"
+        "- Indícale explícitamente que para mandar la orden a la cocina debe enviar ese resumen por WhatsApp al número indicado en el contexto."
     )
 
     prompt = ChatPromptTemplate.from_messages([
@@ -88,38 +84,46 @@ if documents:
         ("human", "{question}"),
     ])
 
-    # Construir la cadena RAG
-    rag_chain = (
-        {"context": retriever, "question": RunnablePassthrough()}
-        | prompt
-        | llm
-        | StrOutputParser()
-    )
-
-    # Historial de conversación en Streamlit
+    # Historial de conversación
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
-    # Mostrar historial previo
+    # Mostrar historial previo en la interfaz
     for msg in st.session_state.messages:
         with st.chat_message(msg["role"]):
             st.write(msg["content"])
 
     # Entrada de texto del usuario
     if user_input := st.chat_input("Escribí tu consulta aquí..."):
-        # Agregar y mostrar mensaje del usuario
         st.session_state.messages.append({"role": "user", "content": user_input})
         with st.chat_message("user"):
             st.write(user_input)
 
-        # Generar respuesta del asistente
+        # Construir el texto del historial para que el LLM tenga memoria
+        formatted_history = ""
+        for m in st.session_state.messages[:-1]:
+            role = "Cliente" if m["role"] == "user" else "Asistente"
+            formatted_history += f"{role}: {m['content']}\n"
+
+        # Generar respuesta
         with st.chat_message("assistant"):
-            with st.spinner("Procesando consulta..."):
-                response = rag_chain.invoke(user_input)
+            with st.spinner("Procesando comanda..."):
+                # Se busca contexto en FAISS basándose en la pregunta actual
+                docs = retriever.invoke(user_input)
+                context_text = "\n\n".join([doc.page_content for doc in docs])
+                
+                # Se formatea el prompt con contexto e historial real
+                full_prompt = prompt.format(
+                    context=context_text,
+                    chat_history=formatted_history if formatted_history else "Sin historial previo.",
+                    question=user_input
+                )
+                
+                # Invocar LLM directamente
+                response_obj = llm.invoke(full_prompt)
+                response = response_obj.content
                 st.write(response)
         
-        # Guardar respuesta en el historial
         st.session_state.messages.append({"role": "assistant", "content": response})
 
-else:
-    st.info("👈 Por favor, subí al menos un archivo (.txt o .pdf) en el panel lateral para comenzar.")
+    
