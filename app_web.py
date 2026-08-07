@@ -74,17 +74,23 @@ if documents:
         "3. Si la respuesta no está en el contexto y no es un saludo, indica de forma educada que no dispones de esa información en la base actual."
     )
 
+    system_prompt = (
+        "Sos un asistente virtual comercial profesional y enfocado en ventas.\n"
+        "Instrucciones de respuesta:\n"
+        "1. Si el usuario saluda o hace conversación informal (ej. 'hola', 'buenas tardes'), responde amablemente ofreciendo ayuda.\n"
+        "2. Si realiza consultas específicas, responde utilizando ÚNICAMENTE el siguiente contexto:\n\n"
+        "{context}\n\n"
+        "3. Si el usuario muestra intención de comprar o agregar productos a su pedido (ej. 'quiero esas zapatillas', 'agregalo', 'quiero pedir'):\n"
+        "   - Armá un resumen del pedido con el producto, talle/variante y precio.\n"
+        "   - Pregúntale los datos faltantes para cerrar la orden (medio de pago y si es con envío a domicilio o retiro).\n"
+        "   - Cuando confirme, mostrale el total y dale el número/enlace de WhatsApp del negocio indicado en el contexto para coordinar el pago y la entrega.\n"
+        "4. Si la respuesta no está en el contexto y no es un saludo, indica de forma educada que no dispones de esa información en la base actual."
+    )
+
     prompt = ChatPromptTemplate.from_messages([
         ("system", system_prompt),
         ("human", "{question}"),
     ])
-
-    rag_chain = (
-        {"context": retriever | format_docs, "question": RunnablePassthrough()}
-        | prompt
-        | llm
-        | StrOutputParser()
-    )
 
     if "messages" not in st.session_state:
         st.session_state.messages = []
